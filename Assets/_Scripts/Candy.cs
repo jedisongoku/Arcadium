@@ -7,52 +7,48 @@ public class Candy : MonoBehaviour
     public delegate void MatchCandy();
     public static event MatchCandy OnMatch;
 
-    public List<Sprite> candySprites = new List<Sprite>();
+    public List<Sprite> candySprites = new List<Sprite>(); // Sprite types to be selected randomly
 
-    public bool isChecked = false;
-    public bool isMatched = false;
-    public int columnNumber;
-    public int candyNumber;
+    public bool isChecked = false; // used to make sure the same candy would not be checked again
 
-    private int candySpriteIndex; // sprite index
+    public int columnNumber; // column number of the candy. It is used for refilling the board.
+
+
+    private int candySpriteIndex; // sprite index of the candy. It is also used to check neighbors if they are the same type
 
     private SpriteRenderer candyRenderer;
     private Vector2 position;
-    private List<Candy> neighbors = new List<Candy>();
+    private List<Candy> neighbors = new List<Candy>(); // list of neighbors of a candy
 
     void Awake()
     {
-        //OnMatch += CandyMatch;
-        candyRenderer = GetComponent<SpriteRenderer>();
-        candySpriteIndex = Random.Range(0, candySprites.Count);
+        candyRenderer = GetComponent<SpriteRenderer>(); 
+    }
+
+    void OnEnable()
+    {
+        isChecked = false;
+        candySpriteIndex = Random.Range(0, candySprites.Count); // Randomly select the type of candy
         candyRenderer.sprite = candySprites[candySpriteIndex];
     }
 
-    public void SetPosition(int x, int y)
-    {
-        position = new Vector2(x, y);
-    }
-
-    public int GetCandyNumber()
+    /*public int GetCandyNumber()
     {
         return candySpriteIndex;
-    }
+    }*/
 
+
+    //When player click a candy, this function is called.
     void OnMouseDown()
     {
-        Board.candiesMatched.Clear();
-        //Board.newSpawnColumn.Clear();
-
-        foreach (var candy in neighbors)
-        {
-            //Debug.Log("Neighbor " + candy.columnNumber);
-        }
-        
-        CheckNeighbor(candySpriteIndex);
-        Board.board.CandyDestroy();
-        
+        Board.candiesMatched.Clear(); //Clears the earlier matches
+        Board.playerMove++; //Increments the player move
+        HUD_Manager.hud.UpdateHUD(); // updates the HUD
+        CheckNeighbor(candySpriteIndex); // Calls a function to check candy's neighbors
+        Board.board.BoardCheck(); // Calls for a Board Check to see if there will be any changes
     }
 
+    //Adds the adjacent candies into the neigbors list
     void OnTriggerEnter2D(Collider2D other)
     {
         if(other.GetComponent<Candy>() != null)
@@ -65,6 +61,7 @@ public class Candy : MonoBehaviour
         
     }
 
+    //Removes the candies that are no longer adjacent
     void OnTriggerExit2D(Collider2D other)
     {
         if (other.GetComponent<Candy>() != null)
@@ -76,12 +73,12 @@ public class Candy : MonoBehaviour
         }
     }
 
-
+    //Check neigbors. If they are the same type of candy, tell them to check their neigbors as well.
     public void CheckNeighbor(int _candyNumber)
     {
         Board.newSpawnColumn.Add(columnNumber);
         Board.candiesMatched.Add(gameObject);
-        //Debug.Log("Column " + columnNumber);
+        OnMatch += IsMatch;
         isChecked = true;
 
         foreach (var candy in neighbors)
@@ -94,55 +91,35 @@ public class Candy : MonoBehaviour
     }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
-
-    /*public void CheckNeighbor(int _candyNumber)
+    //A method used to call OnMatch event outside of the script
+    public static void CallOnMatch()
     {
-        if(!isChecked)
+        OnMatch();
+    }
+
+    void IsMatch()
+    {
+        if(Board.candiesMatched.Count < 3)
         {
-            isChecked = true;
-            if(candyNumber == _candyNumber)
-            {
-                isMatched = true;
-
-                if (position.x - 1 >= 0)
-                {
-                    Board.candies[(int)position.x - 1, (int)position.y].GetComponent<Candy>().CheckNeighbor(candyNumber);
-                }
-                if (position.x + 1 <= Board.board.width)
-                {
-                    Board.candies[(int)position.x + 1, (int)position.y].GetComponent<Candy>().CheckNeighbor(candyNumber);
-                }
-                if (position.y - 1 >= 0)
-                {
-                    Board.candies[(int)position.x, (int)position.y - 1].GetComponent<Candy>().CheckNeighbor(candyNumber);
-                }
-                if (position.y + 1 >= Board.board.height)
-                {
-                    Board.candies[(int)position.x, (int)position.y + 1].GetComponent<Candy>().CheckNeighbor(candyNumber);
-                }
-
-            }
-
+            //prevents new candies to be spawned if there is no match 3+
+            Board.newSpawnColumn.Remove(columnNumber);
+            isChecked = false;
         }
+        else
+        {
+            //Unsubscribes from the event and plays animation if it is a match 3+
+            GetComponent<Animation>().Play("Candy_Disappear");
+            GetComponent<AudioSource>().Play();
+        }
+        OnMatch -= IsMatch;
 
-    }*/
+    }
 
-
+    //At the end of the animation, this method is being called
+    void DestroyCandy()
+    {
+        gameObject.SetActive(false);
+    }
 
 
 }
