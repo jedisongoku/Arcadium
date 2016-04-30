@@ -13,9 +13,9 @@ public class Candy : MonoBehaviour
 
     public int columnNumber; // column number of the candy. It is used for refilling the board.
 
-
+    private int candySelector;
     private int candySpriteIndex; // sprite index of the candy. It is also used to check neighbors if they are the same type
-
+    
     private SpriteRenderer candyRenderer;
     private Vector2 position;
     private List<Candy> neighbors = new List<Candy>(); // list of neighbors of a candy
@@ -28,8 +28,17 @@ public class Candy : MonoBehaviour
     void OnEnable()
     {
         isChecked = false;
-        candySpriteIndex = Random.Range(0, candySprites.Count); // Randomly select the type of candy
-        candyRenderer.sprite = candySprites[candySpriteIndex];
+        if(Random.Range(0,100) > 2)
+        {
+            candySpriteIndex = Random.Range(0, candySprites.Count - 1); // Randomly select the type of candy
+            candyRenderer.sprite = candySprites[candySpriteIndex];
+        }
+        else
+        {
+            candySpriteIndex = candySprites.Count - 1; // Randomly select the type of candy
+            candyRenderer.sprite = candySprites[candySpriteIndex];
+        }
+        
     }
 
     /*public int GetCandyNumber()
@@ -83,9 +92,9 @@ public class Candy : MonoBehaviour
 
         foreach (var candy in neighbors)
         {
-            if(candy.candySpriteIndex == _candyNumber && !candy.isChecked)
+            if((candy.candySpriteIndex == _candyNumber || candy.candySpriteIndex == candySprites.Count - 1) && !candy.isChecked)
             {
-                candy.CheckNeighbor(candySpriteIndex);
+                candy.CheckNeighbor(_candyNumber);
             }
         }
     }

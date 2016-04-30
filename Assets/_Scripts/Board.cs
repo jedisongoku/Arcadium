@@ -127,7 +127,15 @@ public class Board : MonoBehaviour
         {
             
             totalCandy -= candiesMatched.Count;
-            playerScore += candiesMatched.Count;
+            if(candiesMatched.Count >= 5)
+            {
+                playerScore += candiesMatched.Count * candiesMatched.Count;
+            }
+            else
+            {
+                playerScore += candiesMatched.Count;
+            }
+            
             HUD_Manager.hud.UpdateHUD();
 
             if (!isRefilling)
