@@ -9,6 +9,7 @@ public class HUD_Manager : MonoBehaviour
     public Canvas gameHUD;
     public Text moveText;
     public Text scoreText;
+    public Text gameOverText;
 
     //it is called when the play button is clicked
     public void Play()

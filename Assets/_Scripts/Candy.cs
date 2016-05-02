@@ -10,12 +10,14 @@ public class Candy : MonoBehaviour
     public List<Sprite> candySprites = new List<Sprite>(); // Sprite types to be selected randomly
 
     public bool isChecked = false; // used to make sure the same candy would not be checked again
-
+    public bool isEndChecked = false;
     public int columnNumber; // column number of the candy. It is used for refilling the board.
+    public int isEnough = 0; // used to see if a candy have enough neigbors to match
+    public static int totalCandyChecked = 0; // used to call "AnyMoveLeft" function on the board after all candies check their neighbors
+    public static bool moveLeft = false; // used to check if any move left
 
-    private int candySelector;
+
     private int candySpriteIndex; // sprite index of the candy. It is also used to check neighbors if they are the same type
-    
     private SpriteRenderer candyRenderer;
     private Vector2 position;
     private List<Candy> neighbors = new List<Candy>(); // list of neighbors of a candy
@@ -27,8 +29,10 @@ public class Candy : MonoBehaviour
 
     void OnEnable()
     {
+        isEndChecked = false;
         isChecked = false;
-        if(Random.Range(0,100) > 2)
+
+        if (Random.Range(0,100) > 2)
         {
             candySpriteIndex = Random.Range(0, candySprites.Count - 1); // Randomly select the type of candy
             candyRenderer.sprite = candySprites[candySpriteIndex];
@@ -40,12 +44,6 @@ public class Candy : MonoBehaviour
         }
         
     }
-
-    /*public int GetCandyNumber()
-    {
-        return candySpriteIndex;
-    }*/
-
 
     //When player click a candy, this function is called.
     void OnMouseDown()
@@ -99,6 +97,34 @@ public class Candy : MonoBehaviour
         }
     }
 
+    //Check neigbors for end game
+    public void CheckEndGame()
+    {
+        isEnough = 0;
+        totalCandyChecked++;
+
+        foreach (var candy in neighbors)
+        {
+            
+            if (candy.candySpriteIndex == candySpriteIndex || candy.candySpriteIndex == candySprites.Count - 1)
+            {
+                isEnough++;        
+            }
+
+        }
+
+        if (isEnough >= 2)
+        {
+            moveLeft = true;
+        }
+
+        if (totalCandyChecked == Board.candies.Count)
+        {
+            totalCandyChecked = 0;
+            Board.board.AnyMoveLeft(moveLeft);
+
+        }
+    }
 
     //A method used to call OnMatch event outside of the script
     public static void CallOnMatch()

@@ -5,6 +5,8 @@ using System.Collections.Generic;
 public class Board : MonoBehaviour
 {
     public static Board board; //referance to the board
+    public delegate void EndGame();
+    public static event EndGame EndBoard;
 
     public int width; // width of the board
     public int height; // height of the board
@@ -111,6 +113,7 @@ public class Board : MonoBehaviour
             StopCoroutine("RefillTheBoard");
             isRefilling = false;
             newSpawnColumn.Clear();
+            CheckEndGame();
         }
     }
 
@@ -147,5 +150,28 @@ public class Board : MonoBehaviour
         //Event call for candies that subscribed.
         Candy.CallOnMatch();
 
+    }
+
+    // Call each candy to check their neighbors to see if any move left on the board
+    void CheckEndGame()
+    {
+        foreach(var candy in candies)
+        {
+            candy.GetComponent<Candy>().CheckEndGame();
+        }
+    }
+
+    // After each candy checks their neighbors, this method called to check if it is a game over
+    public void AnyMoveLeft(bool moveLeft)
+    {
+
+        if(moveLeft)
+        {
+            Candy.moveLeft = false;
+        }
+        else
+        {
+            HUD_Manager.hud.gameOverText.gameObject.SetActive(true);
+        }
     }
 }
